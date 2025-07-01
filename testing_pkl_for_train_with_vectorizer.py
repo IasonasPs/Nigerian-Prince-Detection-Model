@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
+
 # Assuming your original script is in the same directory or its path is accessible
 # You might need to adjust this if your main script is in a different module
 from train_with_vectorizer import MODEL_DIR, build_pipeline, truncate_float, REPORT_FILE
@@ -88,6 +89,16 @@ def test_model():
     y_test_new = test_df["label"]
 
     print("\nRunning predictions on new test set...")
+
+    t = pipeline.predict_email("testing if this is scam")
+
+    print(t)
+    print(" - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - ")
+    print(" - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - ")
+    print(" - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - ")
+    print(" - -  - -  - -  - -  - -  - -  - -  - -  - -  - -  - - ")
+
+
     y_pred = pipeline.predict(X_test_new)
     y_pred_prob = pipeline.predict_proba(X_test_new)[:, 1] # Probability of being scam (class 1)
 

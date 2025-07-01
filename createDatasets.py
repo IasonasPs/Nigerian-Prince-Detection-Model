@@ -18,11 +18,11 @@ train_df, test_df = train_test_split(
 )
 
 # Save to CSV
-if not os.path.exists("datasets"):
-    os.makedirs("datasets")
+if not os.path.exists("Datasets"):
+    os.makedirs("Datasets")
 
-train_df.to_csv("datasets/train.csv", index=False, encoding="utf-8")
-test_df.to_csv("datasets/test.csv", index=False, encoding="utf-8")
+train_df.to_csv("Datasets/train.csv", index=False, encoding="utf-8")
+test_df.to_csv("Datasets/test.csv", index=False, encoding="utf-8")
 
 print(f"Training set saved as 'train.csv' ({len(train_df)} rows)")
 print(f"Test set saved as 'test.csv' ({len(test_df)} rows)")

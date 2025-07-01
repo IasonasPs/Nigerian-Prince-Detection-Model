@@ -6,6 +6,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
+from types import MethodType
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -13,6 +14,9 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score
 )
+import shutil
+import Entities.EmailSpamPipeline as EmailSpamPipeline
+
 
 MODEL_DIR = "models"
 REPORT_FILE = "report.csv"
@@ -21,12 +25,10 @@ TEST_PATH = os.path.join("datasets", "test.csv")
 
 
 def truncate_float(number: float, decimals: int) -> float:
-    """
-    Truncates a float to a specified number of decimal places.
-    """
+    # Truncates a float to a specified number of decimal places.
+    
     factor = 10 ** decimals
     return int(number * factor) / factor
-
 
 def load_dataset(path: str) -> pd.DataFrame:
     return pd.read_csv(path, encoding="utf-8")
@@ -66,9 +68,44 @@ def build_pipeline() -> Pipeline:
 
     return pipeline
 
+def predict_email(email_body: str) -> dict:
+        """
+        Predicts whether the given email body is spam or not using the trained pipeline.
+        Returns a dictionary with prediction and probability.
+        """
+        pipeline_path = os.path.join(MODEL_DIR, "text_xgboost_pipeline.pkl")
+        if not os.path.exists(pipeline_path):
+            raise FileNotFoundError("Trained pipeline not found. Please train the model first.")
 
+        with open(pipeline_path, "rb") as f:
+            pipeline = pickle.load(f)
+
+        input_df = pd.DataFrame({"body": [email_body]})
+        pred = pipeline.predict(input_df)[0]
+        prob = pipeline.predict_proba(input_df)[0, 1]
+
+        return {"prediction": bool(pred), "probability": float(prob)}
+
+def add_predict_email_to_pipeline(pipeline: Pipeline):
+    # Adds a 'predict_email' method to the pipeline instance for single email prediction.
+    print("Adding 'predict_email' method to pipeline...")
+    def predict_email(self, email_body: str) -> dict:
+        input_df = pd.DataFrame({"body": [email_body]})
+        pred = self.predict(input_df)[0]
+        prob = self.predict_proba(input_df)[0, 1]
+        return {"prediction": bool(pred), "probability": float(prob)}
+    # Bind the method to the pipeline instance
+    pipeline.predict_email = MethodType(predict_email, pipeline)
+
+      
 def main():
-    os.makedirs(MODEL_DIR, exist_ok=True)
+    # os.makedirs(MODEL_DIR, exist_ok=True)
+
+    if os.path.exists(MODEL_DIR):
+        shutil.rmtree(MODEL_DIR)
+    os.makedirs(MODEL_DIR)
+
+
 
     if os.path.exists(REPORT_FILE):
         os.remove(REPORT_FILE)
@@ -88,6 +125,8 @@ def main():
 
     print("\nBuilding and training pipeline...")
     pipeline = build_pipeline()
+
+
     pipeline.fit(X_train, y_train_enc)
 
     # Save pipeline and label encoder
@@ -95,9 +134,15 @@ def main():
     labelenc_path = os.path.join(MODEL_DIR, "label_encoder.pkl")
     with open(pipeline_path, 'wb') as f:
         pickle.dump(pipeline, f)
+
     # with open(labelenc_path, 'wb') as f:
     #     pickle.dump(le_label, f)
 
+    add_predict_email_to_pipeline(pipeline)
+    pipeline = EmailSpamPipeline(steps=[...])
+
+
+    
     print(f"Saved pipeline to {pipeline_path}")
     print(f"Saved label encoder to {labelenc_path}\n")
 
@@ -126,6 +171,7 @@ def main():
     print("Metrics report written to report.csv:\n")
     print(report.to_string(index=False))
 
+   
 
 if __name__ == "__main__":
     main()
