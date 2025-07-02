@@ -1,0 +1,2 @@
+ModelName,Accuracy(%),Precision(%),Recall(%),F1-Score(%),ROC-AUC(%)
+TFIDF+XGBoost,99.66,100.0,99.09,99.54,99.99

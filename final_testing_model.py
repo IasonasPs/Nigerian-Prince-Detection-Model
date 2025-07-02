@@ -1,7 +1,6 @@
 import os
 import pickle
 from Entities.EmailSpamPipeline import EmailSpamPipeline  
-from Entities.PredictionResult import PredictionResult
 
 MODEL_DIR = "ML_Models"
 PIPELINE_PATH = os.path.join(MODEL_DIR, "text_xgboost_pipeline.pkl")
